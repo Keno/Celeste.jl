@@ -65,25 +65,30 @@ where
 """
 const truthfile = joinpath(datadir, "coadd_for_4263_5_119.fit")
 
+println("usage: validate_on_stripe82.jl [--score-only] [--joint_infer]")
 
-if length(ARGS) > 1 || (length(ARGS) == 1 && ARGS[1] != "--score-only")
-    println("usage: validate_on_stripe82.jl [--score-only]")
-else
-    # By default this script both infers all the parameters and scores them,
-    # but because inference is computationally intensive, whereas scoring isn't,
-    # the user gets the option to just run the scoring mode. Running a scoring
-    # alone would primarily be useful for debugging.
-    if length(ARGS) == 0 || ARGS[1] != "--score-only"
-        # adding `; objid=...` to the call limits infer_field to that source.
-        # Potentially useful for debugging.
-        infer_field(rcf, datadir, outdir)
-    end
+score_only = "--score-only" in ARGS
+joint_infer = "--joint_infer" in ARGS
 
-    # Calling `score_object_disk(rcf, objid, datadir, truthfile, datadir)`
-    # instead limits scoring to the specific light source (objid).
-    # That could be somewhat useful for debugging. The output is in a somewhat
-    # different format though, because with just one object it doesn't make
-    # sense to compute a full table comparing Celeste to Primary. 
-    score_field_disk(rcf, outdir, truthfile, datadir)
+
+if joint_infer
+    println("validate_on_stripe82.jl: Doing joint infer rather than a single pass")
 end
+
+# By default this script both infers all the parameters and scores them,
+# but because inference is computationally intensive, whereas scoring isn't,
+# the user gets the option to just run the scoring mode. Running a scoring
+# alone would primarily be useful for debugging.
+if !score_only
+    # adding `; objid=...` to the call limits infer_field to that source.
+    # Potentially useful for debugging.
+    infer_field(rcf, datadir, outdir, joint_infer=joint_infer)
+end
+
+# Calling `score_object_disk(rcf, objid, datadir, truthfile, datadir)`
+# instead limits scoring to the specific light source (objid).
+# That could be somewhat useful for debugging. The output is in a somewhat
+# different format though, because with just one object it doesn't make
+# sense to compute a full table comparing Celeste to Primary. 
+score_field_disk(rcf, outdir, truthfile, datadir)
 

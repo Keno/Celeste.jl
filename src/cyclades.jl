@@ -88,7 +88,7 @@ Partitions sources via the cyclades algorithm.
 Returns:
 - An array of vectors representing the workload of each thread ([thread][batch][sources(indices)])
 """
-function partition_cyclades(nprocthreads, target_sources, neighbor_map; batch_size=60)
+function partition_cyclades(nprocthreads, target_sources, neighbor_map; batch_size=2)
     Log.info("Starting Cyclades partitioning...")
     tic()
 
@@ -244,26 +244,30 @@ function one_node_joint_infer(catalog, target_sources, neighbor_map, images;
     # Pre-allocate dictionary of elboargs, call it model.
     model = Array{ElboArgs}(n_sources)
     function initialize_elboargs_sources(sources)
-        nputs(dt_nodeid, "Thread $(Threads.threadid()) allocating mem for $(length(sources)) sources")
-        for cur_source_index in sources
-            entry_id = target_sources[cur_source_index]
-            entry = catalog[target_sources[cur_source_index]]
-            neighbor_ids = neighbor_map[cur_source_index]
-            neighbors = catalog[neighbor_map[cur_source_index]]
-
-            # TODO max: refactor this portion? It's reused in infer_source.
-            nputs(dt_nodeid, "Thread $(Threads.threadid()) allocating mem for source $(target_sources[cur_source_index]): objid=$(entry.objid)")
-            cat_local = vcat(entry, neighbors)
-            ids_local = vcat(entry_id, neighbor_ids)
-
-            #vp = Vector{Float64}[init_source(ce) for ce in cat_local]
-            vp = Vector{Float64}[haskey(target_source_variational_params, x) ?
-                        target_source_variational_params[x] :
-                        init_source(catalog[x]) for x in ids_local]
-            patches = Infer.get_sky_patches(images, cat_local)
-            ea = ElboArgs(images, vp, patches, [1])
-            Infer.load_active_pixels!(ea)
-            model[cur_source_index] = ea
+        try
+            nputs(dt_nodeid, "Thread $(Threads.threadid()) allocating mem for $(length(sources)) sources")
+            for cur_source_index in sources
+                entry_id = target_sources[cur_source_index]
+                entry = catalog[target_sources[cur_source_index]]
+                neighbor_ids = neighbor_map[cur_source_index]
+                neighbors = catalog[neighbor_map[cur_source_index]]
+                
+                # TODO max: refactor this portion? It's reused in infer_source.
+                nputs(dt_nodeid, "Thread $(Threads.threadid()) allocating mem for source $(target_sources[cur_source_index]): objid=$(entry.objid)")
+                cat_local = vcat(entry, neighbors)
+                ids_local = vcat(entry_id, neighbor_ids)
+                
+                #vp = Vector{Float64}[init_source(ce) for ce in cat_local]
+                vp = Vector{Float64}[haskey(target_source_variational_params, x) ?
+                                     target_source_variational_params[x] :
+                                     init_source(catalog[x]) for x in ids_local]
+                patches = Infer.get_sky_patches(images, cat_local)
+                ea = ElboArgs(images, vp, patches, [1])
+                Infer.load_active_pixels!(ea)
+                model[cur_source_index] = ea
+            end
+        catch ex
+            Log.error("Preallocation error: $(ex)")
         end
     end
 
@@ -285,12 +289,16 @@ function one_node_joint_infer(catalog, target_sources, neighbor_map, images;
     # Process partition of sources. Multiple threads call this function in parallel.
     function process_sources(source_assignment::Vector{Int64})
         for cur_source_indx in source_assignment
-            cur_entry = catalog[target_sources[cur_source_indx]]
-            iter_count, obj_value, max_x, r = DeterministicVI.maximize_f(
-                                                    DeterministicVI.elbo,
-                                                    model[cur_source_indx],
-                                                    max_iters=10)
-            obj_values[cur_source_indx] = obj_value
+            try
+                cur_entry = catalog[target_sources[cur_source_indx]]
+                iter_count, obj_value, max_x, r = DeterministicVI.maximize_f(
+                    DeterministicVI.elbo,
+                    model[cur_source_indx],
+                    max_iters=5)
+                obj_values[cur_source_indx] = obj_value
+            catch ex
+                Log.error(string(ex))
+            end
         end
     end
 
@@ -322,6 +330,8 @@ function one_node_joint_infer(catalog, target_sources, neighbor_map, images;
                             "vs"=>model[i].vp[1],
                             "runtime"=>-1))
     end
+
+    println("YOOOOOO $(length(results))")
 
     results, obj_values
 end

@@ -466,7 +466,9 @@ function one_node_infer(
     end
     timing.opt_srcs = toq()
     timing.num_srcs = length(target_sources)
-    
+
+    println("YOOOOOO $(length(results))")
+
     results, obj_values
 end
 
@@ -526,12 +528,15 @@ entry point)
 function infer_field(rcf::RunCamcolField,
                      stagedir::String,
                      outdir::String;
+                     joint_infer=false,
+                     joint_infer_n_iters=10,                    
                      objid="")
     # Here `one_node_infer` is called just with a single rcf, even though
     # other rcfs may overlap with this one. That's because this function is
     # just for testing on stripe 82: in practice we always use all relevent
     # data to make inferences.
-    results, obj_value = one_node_infer([rcf,], stagedir; objid=objid, primary_initialization=false)
+    results, obj_value = one_node_infer([rcf,], stagedir; objid=objid, primary_initialization=false, 
+                                        joint_infer=joint_infer, joint_infer_n_iters=joint_infer_n_iters)
     fname = if objid == ""
         @sprintf "%s/celeste-%06d-%d-%04d.jld" outdir rcf.run rcf.camcol rcf.field
     else
@@ -577,11 +582,11 @@ function infer_rcf(rcf::RunCamcolField,
     @assert rcf in overlapping_rcfs
 
     tic()
-    results = one_node_infer(overlapping_rcfs,
-                             stagedir;
-                             objid=objid,  # just for making unit tests run fast
-                             box=rcf_bounds,  # could exclude this argument
-                             target_rcfs=[rcf,])
+    results, obj_value = one_node_infer(overlapping_rcfs,
+                                        stagedir;
+                                        objid=objid,  # just for making unit tests run fast
+                                        box=rcf_bounds,  # could exclude this argument
+                                        target_rcfs=[rcf,])
     Log.info("Inferred $rcf in $(toq()) seconds")
 
     fname = @sprintf "%s/celeste-%06d-%d-%04d.jld" outdir rcf.run rcf.camcol rcf.field

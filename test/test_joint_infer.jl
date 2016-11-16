@@ -26,7 +26,7 @@ function test_one_node_joint_infer_obj_overlapping()
     field_triplets = [RunCamcolField(3900, 6, 269),]
     tic()
     result_multi, obj_values_multi = ParallelRun.one_node_infer(field_triplets,
-        datadir; box=box, joint_infer_n_iters=100, joint_infer=true)
+        datadir; box=box, joint_infer_n_iters=10, joint_infer=true)
     multi_iter_time = toq()
     tic()
     result_multi, obj_values_two = ParallelRun.one_node_infer(field_triplets,
