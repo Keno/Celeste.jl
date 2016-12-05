@@ -9,7 +9,7 @@ include("SensitiveFloats.jl")
 
 include("Model.jl")
 include("Infer.jl")
-include("Transform.jl")
+include("TransformOld.jl")
 include("PSF.jl")
 include("SDSSIO.jl")
 
