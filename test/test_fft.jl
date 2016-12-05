@@ -161,11 +161,6 @@ function test_lanczos_interpolate()
 end
 
 
-function test_fft_elbo()
-    
-end
-
-
 test_sinc()
 test_lanczos_kernel()
 test_convolve_sensitive_float_matrix()
