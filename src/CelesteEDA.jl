@@ -95,11 +95,11 @@ function render_source(ea::ElboArgs, s::Int, n::Int;
         else
             error("Unknown field ", field)
         end
-        if include_epsilon
-            image[h2, w2] += ea.images[n].epsilon_mat[h, w]
-        end
         if include_iota
             image[h2, w2] *= ea.images[n].iota_vec[h]
+        end
+        if include_epsilon
+            image[h2, w2] += ea.images[n].epsilon_mat[h, w]
         end
     end
 
@@ -145,7 +145,6 @@ function render_source_fft(
         h_fsm = h - fsms.h_lower + 1
         w_fsm = w - fsms.w_lower + 1
 
-        # if we're here it's a unique active pixel
         image[h2, w2] = getfield(fsms, field)[h_fsm, w_fsm].v[]
         if include_iota
             image[h2, w2] *= ea.images[n].iota_vec[h]

@@ -338,3 +338,8 @@ def smaller_psf(test_case):
 def larger_psf(test_case):
     test_case.psf_sigma_pixels = 6
     test_case.add(Star())
+
+@galsim_test_case
+def tiny_psf(test_case):
+    test_case.psf_sigma_pixels = 0.5
+    test_case.add(Star())
