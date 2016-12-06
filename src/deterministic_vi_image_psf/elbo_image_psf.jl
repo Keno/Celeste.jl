@@ -267,8 +267,8 @@ function accumulate_band_in_elbo!(
             E_G.v[] += image.epsilon_mat[h_image, w_image]
 
             if E_G.v[] < 0
-                warn("Image ", n, " sources ", s, " pixel ", (h_image, w_image),
-                     " has negative brightness ", E_G.v[])
+                # warn("Image ", n, " sources ", s, " pixel ", (h_image, w_image),
+                #      " has negative brightness ", E_G.v[])
                 continue
             end
 

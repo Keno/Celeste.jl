@@ -8,7 +8,7 @@ using DataFrames
 import ..DeterministicVI:
     load_source_brightnesses, accumulate_source_pixel_brightness!, ElboArgs
 import ..Model:
-    linear_world_to_pix, load_bvn_mixtures, ids_names, CatalogEntry,
+    linear_world_to_pix, load_bvn_mixtures, ids_names, ids, CatalogEntry,
     populate_fsm_vecs!
 import ..SensitiveFloats.clear!
 import ..DeterministicVIImagePSF:
