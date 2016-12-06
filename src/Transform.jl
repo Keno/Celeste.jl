@@ -646,6 +646,7 @@ end
 function get_mp_transform{NumType <: Number}(
                           vp::VariationalParams{NumType},
                           active_sources::Vector{Int};
+                          loc_scale::Float64=1,
                           loc_width::Float64=1.5e-3)
     bounds = Array(ParamBounds, length(active_sources))
 
@@ -658,7 +659,7 @@ function get_mp_transform{NumType <: Number}(
         u = vp[s][ids.u]
         for axis in 1:2
             bounds[si][:u][axis] =
-                ParamBox(u[axis] - loc_width, u[axis] + loc_width, 1.0)
+                ParamBox(u[axis] - loc_width, u[axis] + loc_width, loc_scale)
         end
         bounds[si][:r1] = Array(ParamBox, Ia)
         bounds[si][:r2] = Array(ParamBox, Ia)
