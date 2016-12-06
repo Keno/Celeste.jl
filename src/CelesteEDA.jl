@@ -8,7 +8,7 @@ using DataFrames
 import ..DeterministicVI:
     load_source_brightnesses, accumulate_source_pixel_brightness!, ElboArgs
 import ..Model:
-    linear_world_to_pix, lidx, load_bvn_mixtures, ids_names, CatalogEntry,
+    linear_world_to_pix, load_bvn_mixtures, ids_names, CatalogEntry,
     populate_fsm_vecs!
 import ..SensitiveFloats.clear!
 import ..DeterministicVIImagePSF:
@@ -39,7 +39,7 @@ function source_pixel_location(ea::ElboArgs, s::Int, n::Int)
         p.wcs_jacobian,
         p.center,
         p.pixel_center,
-        ea.vp[s][lidx.u])
+        ea.vp[s][ids.u])
     return pix_loc - p.bitmap_offset
 end
 
