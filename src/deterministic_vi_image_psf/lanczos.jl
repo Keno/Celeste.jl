@@ -76,10 +76,10 @@ end
 # Interpolate the PSF to the pixel values.
 function interpolate!{NumType <: Number}(
         kernel_with_derivs, # A 1-d kernel function
+        kernel_width::Int,
         image::Matrix{SensitiveFloat{NumType}},
         psf_image::Matrix{Float64},
         object_loc::Vector{NumType},
-        kernel_width::Int,
         wcs_jacobian::Matrix{Float64},
         calculate_gradient::Bool,
         calculate_hessian::Bool)

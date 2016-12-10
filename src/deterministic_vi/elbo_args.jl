@@ -205,7 +205,8 @@ type ElboArgs{NumType <: Number}
     # If this is set to Inf, the bivariate normals will be evaluated at all
     # points irrespective of their distance from the mean.
     num_allowed_sd::Float64
-
+    
+        
     elbo_vars::ElboIntermediateVariables
 end
 

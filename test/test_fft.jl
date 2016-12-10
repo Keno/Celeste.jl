@@ -100,11 +100,11 @@ function test_lanczos_kernel()
     psf_image[2, 3] = psf_image[3, 2] = psf_image[4, 3] = psf_image[3, 4] = 0.125
 
     star_loc = Float64[5.1, 5.2]
-    lanczos_width = 2.0
+    kernel_width = 2.0
 
     function lanczos_kernel_fd{NumType <: Number}(x_vec::Vector{NumType})
         v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(
-            x_vec[1], lanczos_width)
+            x_vec[1], kernel_width)
         return v
     end
 
@@ -113,7 +113,7 @@ function test_lanczos_kernel()
     fd_d = ForwardDiff.gradient(lanczos_kernel_fd, Float64[ x ])[1]
     fd_h = ForwardDiff.hessian(lanczos_kernel_fd, Float64[ x ])[1, 1]
 
-    v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(x, lanczos_width)
+    v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(x, kernel_width)
 
     @test_approx_eq fd_v v
     @test_approx_eq fd_d d
@@ -146,6 +146,33 @@ function test_bspline_kernel()
 end
 
 
+function test_cubic_kernel()
+    psf_image = zeros(Float64, 5, 5);
+    psf_image[3, 3] = 0.5
+    psf_image[2, 3] = psf_image[3, 2] = psf_image[4, 3] = psf_image[3, 4] = 0.125
+
+    star_loc = Float64[5.1, 5.2]
+    kernel_param = -0.75
+
+    function cubic_kernel_fd{NumType <: Number}(x_vec::Vector{NumType})
+        v, d, h = DeterministicVIImagePSF.cubic_kernel_with_derivatives(
+            x_vec[1], kernel_param)
+        return v
+    end
+
+    x = 0.7
+    fd_v = cubic_kernel_fd([ x ])
+    fd_d = ForwardDiff.gradient(cubic_kernel_fd, Float64[ x ])[1]
+    fd_h = ForwardDiff.hessian(cubic_kernel_fd, Float64[ x ])[1, 1]
+
+    v, d, h = DeterministicVIImagePSF.cubic_kernel_with_derivatives(x, kernel_param)
+
+    @test_approx_eq fd_v v
+    @test_approx_eq fd_d d
+    @test_approx_eq fd_h h
+end
+
+
 function test_interpolate()
     psf_image = zeros(Float64, 5, 5);
     psf_image[3, 3] = 0.5
@@ -165,7 +192,7 @@ function test_interpolate()
             local pixel_loc = Celeste.Model.linear_world_to_pix(
                 wcs_jacobian, Float64[0., 0.], Float64[1.0, 0.5], world_loc)
             DeterministicVIImagePSF.interpolate!(
-                kernel_fun, image, psf_image, pixel_loc, kernel_width, wcs_jacobian,
+                kernel_fun, kernel_width, image, psf_image, pixel_loc, wcs_jacobian,
                 calculate_gradient, calculate_gradient)
             return image
         end
@@ -186,23 +213,24 @@ function test_interpolate()
             @test_approx_eq image[test_pix].h fd_h
         end
     end
+    
+    println("Testing cubic kernel")
+    test_kernel(x ->
+        DeterministicVIImagePSF.cubic_kernel_with_derivatives(x, -0.75))
 
     println("Testing bspline kernel")
-    kernel_fun =
-        x -> DeterministicVIImagePSF.bspline_kernel_with_derivatives(x)
-    test_kernel(kernel_fun)
+    test_kernel(DeterministicVIImagePSF.bspline_kernel_with_derivatives)
 
     println("Testing lanczos kernel")
-    kernel_fun =
-        x -> DeterministicVIImagePSF.lanczos_kernel_with_derivatives(
-            x, Float64(kernel_width))
-    test_kernel(kernel_fun)
-
+    test_kernel(x ->
+        DeterministicVIImagePSF.lanczos_kernel_with_derivatives(
+            x, Float64(kernel_width)))
 end
 
 
 test_sinc()
 test_lanczos_kernel()
 test_bspline_kernel()
+test_cubic_kernel()
 test_convolve_sensitive_float_matrix()
 test_interpolate()

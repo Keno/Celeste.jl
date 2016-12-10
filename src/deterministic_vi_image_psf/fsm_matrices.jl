@@ -40,6 +40,12 @@ type FSMSensitiveFloatMatrices
     # image (the total pixels added in each dimension are twice this)
     pad_pix_h::Int
     pad_pix_w::Int
+    
+    # Functions for star convolution.
+    # kernel_fun is a kernel function that returns the value, derivative, and second
+    # derivative of a univariate kernel, e.g. bspline_kernel_with_derivatives()
+    kernel_width::Int64
+    kernel_fun
 
     FSMSensitiveFloatMatrices() = begin
         new(1, 1,
@@ -47,7 +53,8 @@ type FSMSensitiveFloatMatrices
             GMatrix(), GMatrix(),
             Vector{Matrix{Complex{Float64}}}(),
             Vector{Matrix{Float64}}(),
-            0, 0)
+            0, 0,
+            2, bspline_kernel_with_derivatives)
     end
 end
 
@@ -161,7 +168,7 @@ end
 function debug_populate_fsm_vec!(
     ea::ElboArgs,
     fsm_vec::Array{FSMSensitiveFloatMatrices},
-    lanczos_width::Int)
+    kernel_width::Int)
 
     sbs = load_source_brightnesses(ea,
         calculate_gradient=ea.elbo_vars.elbo.has_gradient,
@@ -179,7 +186,8 @@ function debug_populate_fsm_vec!(
         for s in 1:ea.S
             populate_star_fsm_image!(
                 ea, s, b, fsm_vec[b].psf_vec[s], fsm_vec[b].fs0m_conv,
-                fsm_vec[b].h_lower, fsm_vec[b].w_lower, lanczos_width)
+                fsm_vec[b].h_lower, fsm_vec[b].w_lower,
+                fsm_vec[b].kernel_fun, fsm_vec[b].kernel_width)
             populate_gal_fsm_image!(
                 ea, s, b, gal_mcs_vec[b], fsm_vec[b])
             accumulate_source_image_brightness!(

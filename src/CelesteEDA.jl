@@ -111,7 +111,7 @@ function render_source_fft(
     ea::ElboArgs,
     fsm_vec::Array{FSMSensitiveFloatMatrices,1},
     s::Int, n::Int;
-    include_epsilon=true, lanczos_width=1,
+    include_epsilon=true, kernel_width=1,
     field=:E_G, include_iota=true)
 
     local p = ea.patches[s, n]
@@ -128,7 +128,7 @@ function render_source_fft(
     clear_brightness!(fsms)
     populate_star_fsm_image!(
         ea, s, n, fsms.psf_vec[s], fsms.fs0m_conv,
-        fsms.h_lower, fsms.w_lower, lanczos_width)
+        fsms.h_lower, fsms.w_lower, fsms.kernel_fun, fsms.kernel_width)
     populate_gal_fsm_image!(ea, s, n, gal_mcs, fsms)
     accumulate_source_image_brightness!(ea, s, n, fsms, sbs[s])
 

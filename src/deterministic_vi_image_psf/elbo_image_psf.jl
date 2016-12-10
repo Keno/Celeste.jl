@@ -168,7 +168,8 @@ function populate_star_fsm_image!(
             psf_image::Matrix{Float64},
             fs0m_conv::fs0mMatrix,
             h_lower::Int, w_lower::Int,
-            lanczos_width::Int)
+            kernel_fun::Any, # TODO: Is there a type that can be used here?
+            kernel_width::Int)
     for sf in fs0m_conv clear!(sf) end
     # The pixel location of the star.
     star_loc_pix =
@@ -177,10 +178,8 @@ function populate_star_fsm_image!(
                             ea.patches[s, n].pixel_center,
                             ea.vp[s][lidx.u]) -
         Float64[ h_lower - 1, w_lower - 1]
-    kernel_func = x -> lanczos_kernel_with_derivatives(x, Float64(lanczos_width))
-    interpolate!(kernel_func,
-                 fs0m_conv, psf_image,
-                 star_loc_pix, lanczos_width,
+    interpolate!(kernel_fun, kernel_width,
+                 fs0m_conv, psf_image, star_loc_pix,
                  ea.patches[s, n].wcs_jacobian,
                  ea.elbo_vars.elbo.has_gradient,
                  ea.elbo_vars.elbo.has_hessian)
@@ -230,13 +229,14 @@ function accumulate_band_in_elbo!(
     fsms::FSMSensitiveFloatMatrices,
     sbs::Vector{SourceBrightness{Float64}},
     gal_mcs::Array{GalaxyCacheComponent{Float64}, 4},
-    n::Int, lanczos_width::Int)
+    n::Int)
 
     clear_brightness!(fsms)
     for s in 1:ea.S
         populate_star_fsm_image!(
             ea, s, n, fsms.psf_vec[s], fsms.fs0m_conv,
-            fsms.h_lower, fsms.w_lower, lanczos_width)
+            fsms.h_lower, fsms.w_lower,
+            fsms.kernel_fun, fsms.kernel_width)
         populate_gal_fsm_image!(ea, s, n, gal_mcs, fsms)
         accumulate_source_image_brightness!(ea, s, n, fsms, sbs[s])
     end
@@ -274,7 +274,7 @@ function accumulate_band_in_elbo!(
                 continue
             end
 
-            # Note that with a lanczos_width > 1 negative values are
+            # Note that with a kernel_width > 1 negative values are
             # possible, and this will result in an error in
             # add_elbo_log_term.
 
@@ -297,7 +297,6 @@ end
 
 function elbo_likelihood_with_fft!(
     ea::ElboArgs,
-    lanczos_width::Int64,
     fsm_vec::Array{FSMSensitiveFloatMatrices})
 
     sbs = load_source_brightnesses(ea,
@@ -310,7 +309,7 @@ function elbo_likelihood_with_fft!(
                 ea.S, ea.patches, ea.vp, ea.active_sources, n,
                 calculate_gradient=ea.elbo_vars.elbo.has_gradient,
                 calculate_hessian=ea.elbo_vars.elbo.has_hessian)
-        accumulate_band_in_elbo!(ea, fsm_vec[n], sbs, gal_mcs, n, lanczos_width)
+        accumulate_band_in_elbo!(ea, fsm_vec[n], sbs, gal_mcs, n)
     end
 end
 
@@ -347,14 +346,13 @@ end
 @doc """
 Return a function callback for an FFT elbo.
 """
-function get_fft_elbo_function(
-    ea::ElboArgs, fsm_vec::Vector{}, lanczos_width::Int64)
+function get_fft_elbo_function(ea::ElboArgs, fsm_vec::Vector{})
     function elbo_fft_opt{NumType <: Number}(
                         ea::ElboArgs{NumType};
                         calculate_derivs=true,
                         calculate_hessian=true)
         @assert ea.psf_K == 1
-        elbo_likelihood_with_fft!(ea, lanczos_width, fsm_vec)
+        elbo_likelihood_with_fft!(ea, fsm_vec)
         subtract_kl!(ea, ea.elbo_vars.elbo)
         return deepcopy(ea.elbo_vars.elbo)
     end
