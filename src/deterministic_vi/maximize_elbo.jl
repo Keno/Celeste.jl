@@ -115,7 +115,7 @@ end
 
 function maximize_f{F}(f::F, ea::ElboArgs;
                        loc_width=1.5e-3,
-                       loc_scale=1,
+                       loc_scale=1.0,
                        omitted_ids=Int[],
                        xtol_rel=1e-7,
                        ftol_abs=1e-6,

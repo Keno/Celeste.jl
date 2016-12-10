@@ -177,11 +177,13 @@ function populate_star_fsm_image!(
                             ea.patches[s, n].pixel_center,
                             ea.vp[s][lidx.u]) -
         Float64[ h_lower - 1, w_lower - 1]
-    lanczos_interpolate!(fs0m_conv, psf_image,
-                         star_loc_pix, lanczos_width,
-                         ea.patches[s, n].wcs_jacobian,
-                         ea.elbo_vars.elbo.has_gradient,
-                         ea.elbo_vars.elbo.has_hessian)
+    kernel_func = x -> lanczos_kernel_with_derivatives(x, Float64(lanczos_width))
+    interpolate!(kernel_func,
+                 fs0m_conv, psf_image,
+                 star_loc_pix, lanczos_width,
+                 ea.patches[s, n].wcs_jacobian,
+                 ea.elbo_vars.elbo.has_gradient,
+                 ea.elbo_vars.elbo.has_hessian)
 end
 
 

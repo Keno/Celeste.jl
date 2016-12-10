@@ -646,8 +646,8 @@ end
 function get_mp_transform{NumType <: Number}(
                           vp::VariationalParams{NumType},
                           active_sources::Vector{Int};
-                          loc_scale::Float64=1,
-                          loc_width::Float64=1.5e-3)
+                          loc_scale=1.0,
+                          loc_width=1.5e-3)
     bounds = Array(ParamBounds, length(active_sources))
 
     # Note that, for numerical reasons, the bounds must be on the scale
