@@ -111,7 +111,7 @@ function render_source_fft(
     ea::ElboArgs,
     fsm_vec::Array{FSMSensitiveFloatMatrices,1},
     s::Int, n::Int;
-    include_epsilon=true, kernel_width=1,
+    include_epsilon=true,
     field=:E_G, include_iota=true)
 
     local p = ea.patches[s, n]
