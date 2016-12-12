@@ -110,7 +110,7 @@ function maximize_f{F}(f::F, ea::ElboArgs, transform::DataTransform;
     max_x = Optim.minimizer(nm_result)
 
     Log.debug("elbo is $max_f after $(nm_result.iterations) Newton steps")
-    return f_evals, max_f, max_x, nm_result
+    return f_evals, max_f, max_x, nm_result, transform
 end
 
 function maximize_f{F}(f::F, ea::ElboArgs;

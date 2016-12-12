@@ -297,6 +297,7 @@ function one_node_joint_infer(catalog, target_sources, neighbor_map, images;
                 shuffle!(source_assignment)
             end
             for cur_source_indx in source_assignment
+                # TODO: change this to accept a generic ELBO-calculating function
                 cur_entry = catalog[target_sources[cur_source_indx]]
                 iter_count, obj_value, max_x, r = DeterministicVI.maximize_f(
                     DeterministicVI.elbo,

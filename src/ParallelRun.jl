@@ -450,6 +450,7 @@ function one_node_single_infer(catalog::Vector{CatalogEntry},
                     # could subset images to images_local here too.
                     neighbors = catalog[neighbor_map[ts]]
 
+                    # TODO: change this to accept a generic ELBO-calculating function
                     t0 = time()
                     vs_opt = infer_source(images, neighbors, entry)
                     runtime = time() - t0
