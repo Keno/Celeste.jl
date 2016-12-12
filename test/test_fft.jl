@@ -95,63 +95,50 @@ end
 
 
 function test_lanczos_kernel()
-    psf_image = zeros(Float64, 5, 5);
-    psf_image[3, 3] = 0.5
-    psf_image[2, 3] = psf_image[3, 2] = psf_image[4, 3] = psf_image[3, 4] = 0.125
-
-    star_loc = Float64[5.1, 5.2]
     kernel_width = 2.0
-
     function lanczos_kernel_fd{NumType <: Number}(x_vec::Vector{NumType})
         v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(
             x_vec[1], kernel_width)
         return v
     end
 
-    x = 0.7
-    fd_v = lanczos_kernel_fd([ x ])
-    fd_d = ForwardDiff.gradient(lanczos_kernel_fd, Float64[ x ])[1]
-    fd_h = ForwardDiff.hessian(lanczos_kernel_fd, Float64[ x ])[1, 1]
+    for x in Float64[-2.2, -1.2, -0.2, 0, 0.2, 1.2, 2.2]
+        println("Testing x = ", x)
+        fd_v = lanczos_kernel_fd([ x ])
+        fd_d = ForwardDiff.gradient(lanczos_kernel_fd, Float64[ x ])[1]
+        fd_h = ForwardDiff.hessian(lanczos_kernel_fd, Float64[ x ])[1, 1]
 
-    v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(x, kernel_width)
+        v, d, h = DeterministicVIImagePSF.lanczos_kernel_with_derivatives_nocheck(x, kernel_width)
 
-    @test_approx_eq fd_v v
-    @test_approx_eq fd_d d
-    @test_approx_eq fd_h h
+        @test_approx_eq fd_v v
+        @test_approx_eq fd_d d
+        @test_approx_eq fd_h h
+    end
 end
 
 
 function test_bspline_kernel()
-    psf_image = zeros(Float64, 5, 5);
-    psf_image[3, 3] = 0.5
-    psf_image[2, 3] = psf_image[3, 2] = psf_image[4, 3] = psf_image[3, 4] = 0.125
-
-    star_loc = Float64[5.1, 5.2]
-
     function bspline_kernel_fd{NumType <: Number}(x_vec::Vector{NumType})
         v, d, h = DeterministicVIImagePSF.bspline_kernel_with_derivatives(x_vec[1])
         return v
     end
 
-    x = 0.7
-    fd_v = bspline_kernel_fd([ x ])
-    fd_d = ForwardDiff.gradient(bspline_kernel_fd, Float64[ x ])[1]
-    fd_h = ForwardDiff.hessian(bspline_kernel_fd, Float64[ x ])[1, 1]
+    for x in Float64[-2.2, -1.2, -0.2, 0, 0.2, 1.2, 2.2]
+        println("Testing x = ", x)
+        fd_v = bspline_kernel_fd([ x ])
+        fd_d = ForwardDiff.gradient(bspline_kernel_fd, Float64[ x ])[1]
+        fd_h = ForwardDiff.hessian(bspline_kernel_fd, Float64[ x ])[1, 1]
 
-    v, d, h = DeterministicVIImagePSF.bspline_kernel_with_derivatives(x)
+        v, d, h = DeterministicVIImagePSF.bspline_kernel_with_derivatives(x)
 
-    @test_approx_eq fd_v v
-    @test_approx_eq fd_d d
-    @test_approx_eq fd_h h
+        @test_approx_eq fd_v v
+        @test_approx_eq fd_d d
+        @test_approx_eq fd_h h
+    end
 end
 
 
 function test_cubic_kernel()
-    psf_image = zeros(Float64, 5, 5);
-    psf_image[3, 3] = 0.5
-    psf_image[2, 3] = psf_image[3, 2] = psf_image[4, 3] = psf_image[3, 4] = 0.125
-
-    star_loc = Float64[5.1, 5.2]
     kernel_param = -0.75
 
     function cubic_kernel_fd{NumType <: Number}(x_vec::Vector{NumType})
@@ -160,16 +147,18 @@ function test_cubic_kernel()
         return v
     end
 
-    x = 0.7
-    fd_v = cubic_kernel_fd([ x ])
-    fd_d = ForwardDiff.gradient(cubic_kernel_fd, Float64[ x ])[1]
-    fd_h = ForwardDiff.hessian(cubic_kernel_fd, Float64[ x ])[1, 1]
+    for x in Float64[-2.2, -1.2, -0.2, 0, 0.2, 1.2, 2.2]
+        println("Testing x = ", x)
+        fd_v = cubic_kernel_fd([ x ])
+        fd_d = ForwardDiff.gradient(cubic_kernel_fd, Float64[ x ])[1]
+        fd_h = ForwardDiff.hessian(cubic_kernel_fd, Float64[ x ])[1, 1]
 
-    v, d, h = DeterministicVIImagePSF.cubic_kernel_with_derivatives(x, kernel_param)
+        v, d, h = DeterministicVIImagePSF.cubic_kernel_with_derivatives(x, kernel_param)
 
-    @test_approx_eq fd_v v
-    @test_approx_eq fd_d d
-    @test_approx_eq fd_h h
+        @test_approx_eq fd_v v
+        @test_approx_eq fd_d d
+        @test_approx_eq fd_h h
+    end
 end
 
 

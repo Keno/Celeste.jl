@@ -38,16 +38,16 @@ end
 function bspline_kernel_with_derivatives{NumType <: Number}(x::NumType)
     abs_x = abs(x)
     sign_x = sign(x)
-    if abs_x > 2 || abs_x == 0
+    if abs_x > 2
         return 0, 0, 0
     elseif abs_x > 1
-        return -1 * abs_x^3 + 6 * abs_x^2 - 12 * abs_x + 8,
-               (-2 * abs_x^2 + 12 * abs_x  - 12) * sign_x,
-               -4 * abs_x   + 12
+        return (-1 * abs_x^3 + 6 * abs_x^2 - 12 * abs_x + 8) / 6,
+               (-3 * abs_x^2 + 12 * abs_x  - 12) * sign_x / 6,
+               (-6 * abs_x + 12) / 6
     else
-        return 3 * abs_x^3 - 6 * abs_x^2 + 4,
-               (9 * abs_x^2 - 12 * abs_x) * sign_x,
-               18 * abs_x  - 12
+        return (3 * abs_x^3 - 6 * abs_x^2 + 4) / 6,
+               (9 * abs_x^2 - 12 * abs_x) * sign_x / 6,
+               (18 * abs_x  - 12) / 6
     end
 end
 
@@ -55,7 +55,7 @@ end
 function cubic_kernel_with_derivatives{NumType <: Number}(x::NumType, a::Float64)
     abs_x = abs(x)
     sign_x = sign(x)
-    if abs_x > 2 || abs_x == 0
+    if abs_x > 2
         return 0, 0, 0
     elseif abs_x > 1
         return a * abs_x^3      -5 * a * abs_x^2 +  8 * a * abs_x - 4 * a,
