@@ -102,8 +102,6 @@ immutable SimplexBox
     end
 end
 
-# The vector of transform parameters for a Symbol.
-typealias ParamBounds Dict{Symbol, Union{Vector{ParamBox}, Vector{SimplexBox}}}
 
 
 ###############################################
@@ -161,8 +159,7 @@ end
 Invert the transformation simplexify_parameter() by converting an n-vector
 on a simplex to R^{n - 1}.
 """
-function unsimplexify_parameter{NumType <: Number}(
-            param::Vector{NumType}, sb::SimplexBox)
+function unsimplexify_parameter{NumType <: Number}(param::Vector{NumType}, sb::SimplexBox)
     @assert length(param) == sb.n
     @assert all(param .>= sb.lb)
     @assert(abs(sum(param) - 1) < 1e-14, abs(sum(param) - 1))
